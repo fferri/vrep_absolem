@@ -1,0 +1,98 @@
+#!/usr/bin/env python
+
+import sys
+
+from PyQt4 import QtCore, QtGui
+
+import rospy
+import std_msgs.msg
+
+keys = {
+    QtCore.Qt.Key_Insert: 0,
+    QtCore.Qt.Key_Delete: 0,
+    QtCore.Qt.Key_PageUp: 0,
+    QtCore.Qt.Key_PageDown: 0,
+    QtCore.Qt.Key_Home: 0,
+    QtCore.Qt.Key_End: 0,
+    QtCore.Qt.Key_Left: 0,
+    QtCore.Qt.Key_Right: 0,
+    QtCore.Qt.Key_Up: 0,
+    QtCore.Qt.Key_Down: 0,
+    QtCore.Qt.Key_0: 0
+}
+
+tlv = 0
+trv = 0
+fflp = 0
+ffrp = 0
+frlp = 0
+frrp = 0
+
+class MainWindow(QtGui.QWidget):
+    def __init__(self):
+        super(MainWindow, self).__init__()
+        self.initUI()
+        
+    def initUI(self):
+        self.setGeometry(300, 300, 250, 150)
+        self.setWindowTitle('Signal & slot')
+        self.show()
+
+    def keyPressEvent(self, e):
+        if e.key() in keys.keys():
+            keys[e.key()] = 1
+            print('%s -> 1' % e.key())
+            self.update()
+
+    def keyReleaseEvent(self, e):
+        if e.key() in keys.keys():
+            keys[e.key()] = 0
+            print('%s -> 0' % e.key())
+            self.update()
+
+    def update(self):
+        global tl, tr, ffl, ffr, frl, frl, tlv, trv, fflp, ffrp, frlp, frrp
+        k = 10
+        a = 0.1
+        trv = 0
+        tlv = 0
+        if keys[QtCore.Qt.Key_Left]: trv += k; tlv += -k
+        if keys[QtCore.Qt.Key_Right]: trv += -k; tlv += k
+        if keys[QtCore.Qt.Key_Up]: trv += k; tlv += k
+        if keys[QtCore.Qt.Key_Down]: trv += -k; tlv += -k
+        if keys[QtCore.Qt.Key_Home]:
+            if keys[QtCore.Qt.Key_Insert]: fflp += a
+            if keys[QtCore.Qt.Key_Delete]: fflp -= a
+            if keys[QtCore.Qt.Key_PageUp]: ffrp += a
+            if keys[QtCore.Qt.Key_PageDown]: ffrp -= a
+            if keys[QtCore.Qt.Key_0]: ffrp = 0; fflp = 0
+        if keys[QtCore.Qt.Key_End]:
+            if keys[QtCore.Qt.Key_Insert]: frlp += a
+            if keys[QtCore.Qt.Key_Delete]: frlp -= a
+            if keys[QtCore.Qt.Key_PageUp]: frrp += a
+            if keys[QtCore.Qt.Key_PageDown]: frrp -= a
+            if keys[QtCore.Qt.Key_0]: frrp = 0; frlp = 0
+        tl.publish(std_msgs.msg.Float32(tlv))
+        tr.publish(std_msgs.msg.Float32(trv))
+        ffl.publish(std_msgs.msg.Float32(fflp))
+        ffr.publish(std_msgs.msg.Float32(ffrp))
+        frl.publish(std_msgs.msg.Float32(frlp))
+        frr.publish(std_msgs.msg.Float32(frrp))
+        
+def main():
+    global tl, tr, ffl, ffr, frl, frr
+    rospy.init_node('vrep_absolem_teleop_key')
+    tl = rospy.Publisher('/vrep/left_track/velocity', std_msgs.msg.Float32)
+    tr = rospy.Publisher('/vrep/right_track/velocity', std_msgs.msg.Float32)
+    ffl = rospy.Publisher('/vrep/front_left_flipper/position', std_msgs.msg.Float32)
+    ffr = rospy.Publisher('/vrep/front_right_flipper/position', std_msgs.msg.Float32)
+    frl = rospy.Publisher('/vrep/rear_left_flipper/position', std_msgs.msg.Float32)
+    frr = rospy.Publisher('/vrep/rear_right_flipper/position', std_msgs.msg.Float32)
+
+    app = QtGui.QApplication(sys.argv)
+    w = MainWindow()
+    sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    main()
+
