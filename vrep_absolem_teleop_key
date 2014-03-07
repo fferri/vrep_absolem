@@ -28,6 +28,10 @@ ffrp = 0
 frlp = 0
 frrp = 0
 
+travel_speed = 6
+steering_speed = 0.66 * travel_speed
+flipper_angle_increment = 0.1
+
 class MainWindow(QtGui.QWidget):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -52,25 +56,23 @@ class MainWindow(QtGui.QWidget):
 
     def update(self):
         global tl, tr, ffl, ffr, frl, frl, tlv, trv, fflp, ffrp, frlp, frrp
-        k = 10
-        a = 0.1
         trv = 0
         tlv = 0
-        if keys[QtCore.Qt.Key_Left]: trv += k; tlv += -k
-        if keys[QtCore.Qt.Key_Right]: trv += -k; tlv += k
-        if keys[QtCore.Qt.Key_Up]: trv += k; tlv += k
-        if keys[QtCore.Qt.Key_Down]: trv += -k; tlv += -k
+        if keys[QtCore.Qt.Key_Left]: trv += steering_speed; tlv += -steering_speed
+        if keys[QtCore.Qt.Key_Right]: trv += -steering_speed; tlv += steering_speed
+        if keys[QtCore.Qt.Key_Up]: trv += travel_speed; tlv += travel_speed
+        if keys[QtCore.Qt.Key_Down]: trv += -travel_speed; tlv += -travel_speed
         if keys[QtCore.Qt.Key_Home]:
-            if keys[QtCore.Qt.Key_Insert]: fflp += a
-            if keys[QtCore.Qt.Key_Delete]: fflp -= a
-            if keys[QtCore.Qt.Key_PageUp]: ffrp += a
-            if keys[QtCore.Qt.Key_PageDown]: ffrp -= a
+            if keys[QtCore.Qt.Key_Insert]: fflp += flipper_angle_increment
+            if keys[QtCore.Qt.Key_Delete]: fflp -= flipper_angle_increment
+            if keys[QtCore.Qt.Key_PageUp]: ffrp += flipper_angle_increment
+            if keys[QtCore.Qt.Key_PageDown]: ffrp -= flipper_angle_increment
             if keys[QtCore.Qt.Key_0]: ffrp = 0; fflp = 0
         if keys[QtCore.Qt.Key_End]:
-            if keys[QtCore.Qt.Key_Insert]: frlp += a
-            if keys[QtCore.Qt.Key_Delete]: frlp -= a
-            if keys[QtCore.Qt.Key_PageUp]: frrp += a
-            if keys[QtCore.Qt.Key_PageDown]: frrp -= a
+            if keys[QtCore.Qt.Key_Insert]: frlp += flipper_angle_increment
+            if keys[QtCore.Qt.Key_Delete]: frlp -= flipper_angle_increment
+            if keys[QtCore.Qt.Key_PageUp]: frrp += flipper_angle_increment
+            if keys[QtCore.Qt.Key_PageDown]: frrp -= flipper_angle_increment
             if keys[QtCore.Qt.Key_0]: frrp = 0; frlp = 0
         tl.publish(std_msgs.msg.Float32(tlv))
         tr.publish(std_msgs.msg.Float32(trv))
